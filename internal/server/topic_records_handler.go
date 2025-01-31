@@ -10,8 +10,8 @@ import (
 )
 
 type TopicRecordsRequest struct {
-	Topic string `json:"topic"`
-	Page  int    `json:"page"`
+	Topics []string `json:"topics"`
+	Page   int      `json:"page"`
 }
 
 const (
@@ -31,28 +31,38 @@ func (server *Server) TopicRecordsHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	var lines []string
-	if req.Topic == "all" {
+	if len(req.Topics) == 0 {
+		ErrResponse(w, http.StatusBadRequest, fmt.Errorf("topics is empty"))
+		return
+	}
+
+	var isAllTopic bool
+	for _, topic := range req.Topics {
+		if topic == "all" {
+			isAllTopic = true
+			break
+		}
+	}
+
+	topics := req.Topics
+	if isAllTopic {
 		files, err := os.ReadDir("topics")
 		if err != nil {
 			ErrResponse(w, http.StatusInternalServerError, err)
 			return
 		}
 		for _, file := range files {
-			data, err := os.ReadFile("topics/" + file.Name())
-			if err != nil {
-				ErrResponse(w, http.StatusInternalServerError, err)
-				return
-			}
-			lines = append(lines, strings.Split(string(data), "\n")...)
+			topics = append(topics, file.Name())
 		}
-	} else {
-		data, err := os.ReadFile("topics/" + req.Topic)
+	}
+	var lines []string
+	for _, topic := range topics {
+		data, err := os.ReadFile("topics/" + topic)
 		if err != nil {
 			ErrResponse(w, http.StatusInternalServerError, err)
 			return
 		}
-		lines = strings.Split(string(data), "\n")
+		lines = append(lines, strings.Split(string(data), "\n")...)
 	}
 	SuccessResponse(w, TopicRecordsResponse{
 		Records:   GetDataPage(lines, req.Page),

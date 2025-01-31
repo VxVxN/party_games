@@ -11,7 +11,7 @@ type errorResponse struct {
 }
 
 func (server *Server) TopicListHandler(w http.ResponseWriter, r *http.Request) {
-	result, err := getTopicList(w)
+	result, err := getTopicList()
 	if err != nil {
 		ErrResponse(w, http.StatusInternalServerError, err)
 		return
@@ -19,7 +19,7 @@ func (server *Server) TopicListHandler(w http.ResponseWriter, r *http.Request) {
 	SuccessResponse(w, result)
 }
 
-func getTopicList(w http.ResponseWriter) ([]string, error) {
+func getTopicList() ([]string, error) {
 	result := []string{"all"}
 	dirEntities, err := os.ReadDir("topics")
 	if err != nil {
