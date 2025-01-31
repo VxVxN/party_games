@@ -1,0 +1,25 @@
+.game-list {
+    list-style: none;
+    padding: 0;
+    min-height: 320px;
+    width: 100%;
+
+    .game-item {
+        padding: 1rem;
+        margin: 1rem;
+        cursor: pointer;
+        border-radius: .5rem;
+        background-color: var(--primary);
+        font-size: 1rem;
+        //transition: font-size 0.25s linear;
+
+        &:hover {
+            font-size: 1.25rem;
+            font-weight: 600;
+
+            -webkit-box-shadow: 0 10px 5px -5px rgba(230, 21, 139, 0.6);
+            -moz-box-shadow: 0 10px 5px -5px rgba(230, 21, 139, 0.6);
+            box-shadow: 0 5px 10px -5px rgba(230, 21, 139, 0.6);
+        }
+    }
+}

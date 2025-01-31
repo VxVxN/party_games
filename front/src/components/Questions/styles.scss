@@ -1,0 +1,31 @@
+
+.questions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  min-height: 320px;
+
+  .card-question {
+    text-wrap: balance;
+    font-weight: 400;
+    padding: 1rem;
+    position: fixed;
+
+    animation: shadowPulse 3s infinite alternate ease-in-out;
+  }
+}
+
+@keyframes shadowPulse {
+  0% {
+    box-shadow: 0 10px 50px -10px rgba(255, 255, 255, 0.6);
+  }
+  50% {
+    box-shadow: 0 4px 20px rgba(172, 116, 255, 0.6);
+  }
+  100% {
+    box-shadow: 0 10px 50px -10px rgba(251, 127, 172, 0.6);
+  }
+}
