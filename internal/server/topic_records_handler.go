@@ -52,6 +52,7 @@ func (server *Server) TopicRecordsHandler(w http.ResponseWriter, r *http.Request
 			ErrResponse(w, http.StatusInternalServerError, err)
 			return
 		}
+		topics = []string{}
 		for _, file := range files {
 			topics = append(topics, file.Name())
 		}
