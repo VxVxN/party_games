@@ -1,0 +1,21 @@
+version: '3.8'
+services:
+  web:
+    container_name: 'web'
+    build:
+      context: ./front
+      # target: runner
+    volumes:
+      - .:/app
+#    command: yarn start
+    ports:
+      - "3000:80"
+    environment:
+      NODE_ENV: development
+
+  backend:
+    container_name: 'backend'
+    restart: always
+    build: .
+    ports:
+      - "8080:8080"
