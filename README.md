@@ -1,5 +1,7 @@
 # Party games
 
+Запускай теперь через docker-compouse.yaml
+
 ## Back
 
 1. Build image
