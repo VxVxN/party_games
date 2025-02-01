@@ -1,9 +1,8 @@
-import axios, {AxiosError, AxiosResponse, isAxiosError} from "axios";
+import axios from "axios";
 
 const BASE_URL = "/api";
 
-
-export const axiosInstance = axios.create({baseURL: BASE_URL});
+export const axiosInstance = axios.create({ baseURL: BASE_URL });
 
 // axiosInstance.interceptors.response.use(
 //     async (response) => {

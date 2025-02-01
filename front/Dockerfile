@@ -2,7 +2,7 @@ FROM node:18-alpine AS build
 
 WORKDIR /app
 
-COPY package.json package-lock.json ./
+COPY package.json yarn.lock ./
 
 RUN npm install --frozen-lockfile
 
@@ -13,7 +13,7 @@ RUN npm run build
 FROM nginx:alpine
 
 # 8. Копируем собранные файлы в Nginx
-COPY --from=build /app/build /usr/share/nginx/html
+COPY --from=build /app/dist /usr/share/nginx/html
 
 # 9. Копируем кастомный конфиг Nginx (если нужно)
 COPY nginx.conf /etc/nginx/nginx.conf
