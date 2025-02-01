@@ -12,7 +12,7 @@ func main() {
 
 	router := http.NewServeMux()
 	router.HandleFunc("GET /topic/list", server.TopicListHandler)
-	router.HandleFunc("GET /topic/records", server.TopicRecordsHandler)
+	router.HandleFunc("POST /topic/records", server.TopicRecordsHandler)
 
 	if err := server.ListenAndServe(router); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
