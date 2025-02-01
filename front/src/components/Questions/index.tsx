@@ -1,36 +1,30 @@
-import {useState} from "react";
+import {useEffect, useMemo, useState} from "react";
 import {AnimatePresence, motion, useMotionValue, useTransform} from "framer-motion";
 import './styles.scss'
 import CounterCards from "../Counter";
+import {useGetTopicRecords} from "@/api/getTopicRecords.ts";
+import {RequestTopicRecords} from "@/api/types.ts";
+import {usePrev} from "@/hooks/usePrev.ts";
 
 const cards = [
     "Я никогда не использовал поддельное удостоверение личности.",
     "Меня никогда не арестовывали.",
     "Я никогда не унижал себя на свидании.",
-    "Я никогда не роняла телефон в унитаз.",
-    "Я никогда не касался червя.",
-    "Я никогда не был в магазине для взрослых.",
-    "Я никогда не флиртовал с кем-то, чтобы получить бесплатную выпивку.",
-    "Меня никогда не вырвало на незнакомца, когда он был пьян,",
-    "Я никогда не мочился в постель старше 15 лет.",
-    "У меня никогда не было сахарного папочки/мамы.",
-    "Я никогда не водил машину голым.",
-    "Я никогда не бросал пить более двух раз.",
-    "Я никогда не бросал курить более двух раз.",
-    "Я никогда не плавал голышом в чужом бассейне.",
-    "Я никогда не выходил на улицу без одежды.",
-    "Я никогда не платил за контент для взрослых.",
-    "Я никогда не звонил своим родителям через задницу.",
-    "Я никогда не танцевал на столе.",
-    "Я никогда не ходил на работу с похмелья.",
-    "Я никогда не флиртовала с учителем.",
-    "Я никогда не целовался в самолете.",
-    "Я никогда не был в стриптиз-клубе.",
 ];
 
-function Questions() {
+interface QuestionsProps {
+    topics: string[]
+}
+
+function Questions(props: QuestionsProps) {
+    const {topics} = props;
     const [index, setIndex] = useState(0);
     const [direction, setDirection] = useState(0);
+    const [page, setPage] = useState(1);
+    const prevPage = usePrev(page);
+
+    const {data: questions, isSuccess, isError, mutate} = useGetTopicRecords({topics, page})
+
 
     const x = useMotionValue(0)
     const xInput = [-100, 0, 100]
@@ -41,10 +35,29 @@ function Questions() {
         "linear-gradient(180deg, rgba(255,226,242,1) 0%, rgba(255,151,189,1) 100%)",
     ])
 
+    const requestArgs = useMemo<RequestTopicRecords>(() => {
+        const args = {
+            topics,
+            page: page < 1 ? 1 : page,
+        }
+
+        if (isError && prevPage) {
+            args.page = prevPage;
+        }
+
+        return args;
+    }, [topics, page, prevPage, isError])
+
+    useEffect(() => {
+        // mutate(requestArgs)
+    }, [requestArgs])
+
     const paginate = (newDirection: number) => {
         setDirection(newDirection);
         setIndex((prev) => Math.min(Math.max(prev + newDirection, 0), cards.length - 1));
     };
+
+    console.log()
 
     return <div>
         <CounterCards count={cards.length} current={index}/>
@@ -64,9 +77,19 @@ function Questions() {
                     whileTap={{scale: 0.95}}
                     onDragEnd={(_, info) => {
                         if (info.offset.x < -100) {
+                            if (index === cards.length - 1) {
+                                setPage(prevState => prevState + 1)
+                                console.log('fetch next page')
+                            }
+
                             // Свайп влево
                             paginate(1);
                         } else if (info.offset.x > 100) {
+                            if (index === 0) {
+                                setPage(prevState => prevState - 1)
+                                console.log('fetch prev page')
+                            }
+
                             // Свайп вправо
                             paginate(-1);
                         } else {

@@ -3,11 +3,13 @@ import Questions from "../components/Questions";
 import PageHeader from "../components/PageHeader";
 
 function GamePage() {
-    const params = useParams<{ categoryId: string }>();
+    const {topic} = useParams<{ topic: string }>();
 
     return <div className='page'>
-        <PageHeader title={`game ${params.categoryId}`}/>
-        <Questions/>
+        <PageHeader title={topic || ''}/>
+        {
+            topic ? <Questions topics={[topic]}/> : <div>Empty</div>
+        }
     </div>
 }
 

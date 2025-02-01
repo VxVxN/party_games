@@ -1,6 +1,6 @@
 import './styles.scss'
 import GameListItem from "./GameListItem.tsx";
-import {useTopicList} from "../../api/getTopicList.ts";
+import {useTopicList} from "@/api/getTopicList.ts";
 import Loader from "@/components/Loader";
 
 function GameList() {
@@ -9,10 +9,13 @@ function GameList() {
     if (isLoading)
         return <Loader/>
 
+    if (!data)
+        return <div>Empty</div>
+
     return <ul className='game-list'>
-        <GameListItem>+18</GameListItem>
-        <GameListItem>middle</GameListItem>
-        <GameListItem>hard</GameListItem>
+        {
+            data.map((topic) => (<GameListItem key={topic} topic={topic}>{topic}</GameListItem>))
+        }
     </ul>
 }
 

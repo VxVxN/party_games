@@ -15,7 +15,7 @@ function App() {
                 <Routes>
                     <Route element={<MainLayout/>}>
                         <Route index path="/" element={<HomePage/>}/>
-                        <Route path="/game/:categoryId" element={<GamePage/>}/>
+                        <Route path="/game/:topic" element={<GamePage/>}/>
                     </Route>
                 </Routes>
             </BrowserRouter>
