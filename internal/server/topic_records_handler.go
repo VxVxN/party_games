@@ -36,40 +36,58 @@ func (server *Server) TopicRecordsHandler(w http.ResponseWriter, r *http.Request
 		ErrResponse(w, http.StatusBadRequest, fmt.Errorf("topics is empty"))
 		return
 	}
-
-	var isAllTopic bool
-	for _, topic := range req.Topics {
-		if topic == "all" {
-			isAllTopic = true
-			break
-		}
+	lines, err := getRecordsByTopics(req.Topics)
+	if err != nil {
+		ErrResponse(w, http.StatusInternalServerError, err)
+		return
 	}
+	result := GetDataPage(lines, req.Page, req.PageSize)
+	if result == nil {
+		result = make([]string, 0)
+	}
+	SuccessResponse(w, TopicRecordsResponse{
+		Records:   result,
+		CountPage: len(lines)/req.PageSize + 1,
+	})
+}
 
-	topics := req.Topics
-	if isAllTopic {
+func getRecordsByTopics(topics []string) ([]string, error) {
+	if isAllTopic(topics) {
 		files, err := os.ReadDir("topics")
 		if err != nil {
-			ErrResponse(w, http.StatusInternalServerError, err)
-			return
+			return nil, err
 		}
 		topics = []string{}
 		for _, file := range files {
 			topics = append(topics, file.Name())
 		}
 	}
+	lines, err := readRecordsByTopics(topics)
+	if err != nil {
+		return nil, err
+	}
+	return lines, nil
+}
+
+func readRecordsByTopics(topics []string) ([]string, error) {
 	var lines []string
 	for _, topic := range topics {
 		data, err := os.ReadFile("topics/" + topic)
 		if err != nil {
-			ErrResponse(w, http.StatusInternalServerError, err)
-			return
+			return nil, err
 		}
 		lines = append(lines, strings.Split(string(data), "\n")...)
 	}
-	SuccessResponse(w, TopicRecordsResponse{
-		Records:   GetDataPage(lines, req.Page, req.PageSize),
-		CountPage: len(lines)/req.PageSize + 1,
-	})
+	return lines, nil
+}
+
+func isAllTopic(topics []string) bool {
+	for _, topic := range topics {
+		if topic == "all" {
+			return true
+		}
+	}
+	return false
 }
 
 func UnmarshalRequest(body io.ReadCloser, reqStruct interface{}) error {
@@ -88,6 +106,5 @@ func GetDataPage(data []string, page, pageSize int) []string {
 	if stop > len(data) {
 		stop = len(data)
 	}
-
 	return data[start:stop]
 }
