@@ -10,13 +10,10 @@ import (
 )
 
 type TopicRecordsRequest struct {
-	Topics []string `json:"topics"`
-	Page   int      `json:"page"`
+	Topics   []string `json:"topics"`
+	Page     int      `json:"page"`
+	PageSize int      `json:"page_size"`
 }
-
-const (
-	itemsPerPage = 10
-)
 
 type TopicRecordsResponse struct {
 	Records   []string `json:"records"`
@@ -29,6 +26,10 @@ func (server *Server) TopicRecordsHandler(w http.ResponseWriter, r *http.Request
 	if err := UnmarshalRequest(r.Body, &req); err != nil {
 		ErrResponse(w, http.StatusBadRequest, fmt.Errorf("can't unmarshal request body: %v", err))
 		return
+	}
+
+	if req.PageSize == 0 {
+		req.PageSize = 10
 	}
 
 	if len(req.Topics) == 0 {
@@ -65,8 +66,8 @@ func (server *Server) TopicRecordsHandler(w http.ResponseWriter, r *http.Request
 		lines = append(lines, strings.Split(string(data), "\n")...)
 	}
 	SuccessResponse(w, TopicRecordsResponse{
-		Records:   GetDataPage(lines, req.Page),
-		CountPage: len(lines)/itemsPerPage + 1,
+		Records:   GetDataPage(lines, req.Page, req.PageSize),
+		CountPage: len(lines)/req.PageSize + 1,
 	})
 }
 
@@ -75,9 +76,9 @@ func UnmarshalRequest(body io.ReadCloser, reqStruct interface{}) error {
 	return decoder.Decode(&reqStruct)
 }
 
-func GetDataPage(data []string, page int) []string {
-	start := (page - 1) * itemsPerPage
-	stop := start + itemsPerPage
+func GetDataPage(data []string, page, pageSize int) []string {
+	start := (page - 1) * pageSize
+	stop := start + pageSize
 
 	if start > len(data) {
 		return nil
