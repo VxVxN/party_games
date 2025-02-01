@@ -6,7 +6,7 @@ import { AxiosError } from "axios";
 async function getTopicRecord(req: RequestTopicRecords) {
   const data = await axiosInstance.post<ResponseTopicRecords>(
     "/topic/records",
-    req,
+    { ...req, page_size: req.page_size || 30 },
   );
 
   return data.data;

@@ -1,21 +1,17 @@
-import { useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   AnimatePresence,
   motion,
+  PanInfo,
   useMotionValue,
   useTransform,
 } from "framer-motion";
 import "./styles.scss";
 import CounterCards from "../Counter";
-// import {useGetTopicRecords} from "@/api/getTopicRecords.ts";
-// import {RequestTopicRecords} from "@/api/types.ts";
-// import {usePrev} from "@/hooks/usePrev.ts";
-
-const cards = [
-  "Я никогда не использовал поддельное удостоверение личности.",
-  "Меня никогда не арестовывали.",
-  "Я никогда не унижал себя на свидании.",
-];
+import { useGetTopicRecords } from "@/api/getTopicRecords.ts";
+import { RequestTopicRecords } from "@/api/types.ts";
+import { usePrev } from "@/hooks/usePrev.ts";
+import Loader from "@/components/Loader";
 
 interface QuestionsProps {
   topics: string[];
@@ -26,11 +22,9 @@ function Questions(props: QuestionsProps) {
   const [index, setIndex] = useState(0);
   const [direction, setDirection] = useState(0);
   const [page, setPage] = useState(1);
-  // const prevPage = usePrev(page);
+  const prevPage = usePrev(page);
 
-  // const {data: questions, isSuccess, isError, mutate} = useGetTopicRecords({topics, page})
-
-  console.log(page, topics);
+  const { data: questions, isSuccess, isError, mutate } = useGetTopicRecords();
 
   const x = useMotionValue(0);
   const xInput = [-100, 0, 100];
@@ -41,74 +35,123 @@ function Questions(props: QuestionsProps) {
     "linear-gradient(180deg, rgba(255,226,242,1) 0%, rgba(255,151,189,1) 100%)",
   ]);
 
-  // const requestArgs = useMemo<RequestTopicRecords>(() => {
-  //     const args = {
-  //         topics,
-  //         page: page < 1 ? 1 : page,
-  //     }
-  //
-  //     if (isError && prevPage) {
-  //         args.page = prevPage;
-  //     }
-  //
-  //     return args;
-  // }, [topics, page, prevPage, isError])
+  const hasNextPage = useMemo(
+    () => questions?.count_page && page < questions.count_page,
+    [questions?.count_page, page],
+  );
 
-  // useEffect(() => {
-  //     // mutate(requestArgs)
-  // }, [requestArgs])
+  const requestArgs = useMemo<RequestTopicRecords>(() => {
+    return {
+      topics,
+      page: isError && prevPage ? prevPage : Math.max(page, 1),
+    };
+  }, [topics, page, prevPage, isError]);
+  const prevRequestArgs = usePrev(requestArgs);
 
-  const paginate = (newDirection: number) => {
-    setDirection(newDirection);
-    setIndex((prev) =>
-      Math.min(Math.max(prev + newDirection, 0), cards.length - 1),
-    );
-  };
+  useEffect(() => {
+    if (JSON.stringify(requestArgs) !== JSON.stringify(prevRequestArgs)) {
+      if (questions?.count_page && page > questions?.count_page) return;
 
-  console.log();
+      mutate(requestArgs, {
+        onSuccess: (resp) => {
+          if (prevPage && prevPage > page) {
+            setIndex(resp.records.length ? resp.records.length - 1 : 0);
+            setDirection(0);
+            return;
+          }
+
+          setIndex(0);
+          setDirection(0);
+        },
+      });
+    }
+  }, [
+    mutate,
+    page,
+    prevPage,
+    prevRequestArgs,
+    questions?.count_page,
+    requestArgs,
+  ]);
+
+  const paginate = useCallback(
+    (newDirection: number) => {
+      setDirection(newDirection);
+      setIndex((prev) =>
+        Math.min(
+          Math.max(prev + newDirection, 0),
+          (questions?.records.length || 0) - 1,
+        ),
+      );
+    },
+    [questions?.records.length],
+  );
+
+  const handleDragEnd = useCallback(
+    (_: unknown, info: PanInfo) => {
+      if (info.offset.x < -100) {
+        if (index === (questions?.records.length || 0) - 1) {
+          if (hasNextPage) setPage((prev) => prev + 1);
+
+          return;
+        }
+
+        // Свайп влево
+        paginate(1);
+      } else if (info.offset.x > 100) {
+        if (index === 0 && page > 1) {
+          setPage((prev) => Math.max(prev - 1, 1));
+
+          return;
+        }
+
+        // Свайп вправо
+        paginate(-1);
+      } else {
+        x.set(0, true);
+      }
+    },
+    [index, questions?.records.length, paginate, hasNextPage, page, x],
+  );
 
   return (
     <div>
-      <CounterCards count={cards.length} current={index} />
+      <CounterCards count={questions?.records.length || 0} current={index} />
+      <div className="flex gap-2 w-full justify-center text-neutral-400">
+        <span>Этап</span>
+        <span>{page}</span>
+      </div>
       <div className="questions">
-        <AnimatePresence>
-          <motion.div
-            key={index}
-            className="card-question absolute w-80 h-40 flex justify-center items-center bg-white rounded-lg shadow-lg text-xl text-slate-950"
-            drag="x"
-            dragConstraints={{ left: 0, right: 0 }}
-            dragElastic={0.5}
-            style={{ x, background, scale }}
-            initial={{ x: direction > 0 ? 300 : -300, opacity: 0, scale: 1 }}
-            animate={{ x: 0, opacity: 1, rotateY: 0 }}
-            exit={{ opacity: 0 }}
-            transition={{ type: "spring", stiffness: 500, damping: 30 }}
-            whileTap={{ scale: 0.95 }}
-            onDragEnd={(_, info) => {
-              if (info.offset.x < -100) {
-                if (index === cards.length - 1) {
-                  setPage((prevState) => prevState + 1);
-                  console.log("fetch next page");
-                }
-
-                // Свайп влево
-                paginate(1);
-              } else if (info.offset.x > 100) {
-                if (index === 0) {
-                  setPage((prevState) => prevState - 1);
-                  console.log("fetch prev page");
-                }
-
-                // Свайп вправо
-                paginate(-1);
-              } else {
-                x.set(0, true);
-              }
-            }}
-          >
-            {cards[index]}
-          </motion.div>
-        </AnimatePresence>
+        {isSuccess ? (
+          questions?.records.length === 0 ? (
+            <div>Empty</div>
+          ) : (
+            <AnimatePresence>
+              <motion.div
+                key={index}
+                className="card-question absolute w-80 h-40 flex justify-center items-center bg-white rounded-lg shadow-lg text-xl text-slate-950"
+                drag="x"
+                dragConstraints={{ left: 0, right: 0 }}
+                dragElastic={0.5}
+                style={{ x, background, scale }}
+                initial={{
+                  x: direction > 0 ? 300 : -300,
+                  opacity: 0,
+                  scale: 1,
+                }}
+                animate={{ x: 0, opacity: 1, rotateY: 0 }}
+                exit={{ opacity: 0 }}
+                transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                whileTap={{ scale: 0.95 }}
+                onDragEnd={handleDragEnd}
+              >
+                {questions?.records[index]}
+              </motion.div>
+            </AnimatePresence>
+          )
+        ) : (
+          <Loader />
+        )}
       </div>
     </div>
   );
