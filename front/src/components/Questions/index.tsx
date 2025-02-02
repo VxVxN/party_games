@@ -139,7 +139,7 @@ function Questions(props: QuestionsProps) {
                   opacity: 0,
                   scale: 1,
                 }}
-                animate={{ x: 0, opacity: 1, rotateY: 0 }}
+                animate={{ x: 0, opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ type: "spring", stiffness: 500, damping: 30 }}
                 whileTap={{ scale: 0.95 }}
