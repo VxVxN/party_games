@@ -5,10 +5,13 @@ import (
 )
 
 type Server struct {
+	fileDataByName map[string][]byte
 }
 
 func NewServer() *Server {
-	return &Server{}
+	return &Server{
+		fileDataByName: make(map[string][]byte),
+	}
 }
 
 func (server *Server) ListenAndServe(handler http.Handler) error {

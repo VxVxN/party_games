@@ -36,7 +36,7 @@ func (server *Server) TopicRecordsHandler(w http.ResponseWriter, r *http.Request
 		ErrResponse(w, http.StatusBadRequest, fmt.Errorf("topics is empty"))
 		return
 	}
-	lines, err := getRecordsByTopics(req.Topics)
+	lines, err := server.getRecordsByTopics(req.Topics)
 	if err != nil {
 		ErrResponse(w, http.StatusInternalServerError, err)
 		return
@@ -51,7 +51,7 @@ func (server *Server) TopicRecordsHandler(w http.ResponseWriter, r *http.Request
 	})
 }
 
-func getRecordsByTopics(topics []string) ([]string, error) {
+func (server *Server) getRecordsByTopics(topics []string) ([]string, error) {
 	if isAllTopic(topics) {
 		files, err := os.ReadDir("topics")
 		if err != nil {
@@ -62,19 +62,26 @@ func getRecordsByTopics(topics []string) ([]string, error) {
 			topics = append(topics, file.Name())
 		}
 	}
-	lines, err := readRecordsByTopics(topics)
+	lines, err := server.readRecordsByTopics(topics)
 	if err != nil {
 		return nil, err
 	}
 	return lines, nil
 }
 
-func readRecordsByTopics(topics []string) ([]string, error) {
+func (server *Server) readRecordsByTopics(topics []string) ([]string, error) {
 	var lines []string
 	for _, topic := range topics {
-		data, err := os.ReadFile("topics/" + topic)
-		if err != nil {
-			return nil, err
+		var data []byte
+		var ok bool
+		data, ok = server.fileDataByName[topic]
+		if !ok {
+			var err error
+			data, err = os.ReadFile("topics/" + topic)
+			if err != nil {
+				return nil, err
+			}
+			server.fileDataByName[topic] = data
 		}
 		lines = append(lines, strings.Split(string(data), "\n")...)
 	}
