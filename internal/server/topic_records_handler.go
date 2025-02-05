@@ -84,6 +84,9 @@ func (server *Server) readRecordsByTopics(topics []string) ([]string, error) {
 			}
 			server.fileDataByName[topic] = data
 		}
+		if data == nil {
+			continue
+		}
 		lines = append(lines, strings.Split(string(data), "\n")...)
 	}
 	return lines, nil
