@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math"
 	"net/http"
 	"os"
 	"strings"
@@ -47,7 +48,7 @@ func (server *Server) TopicRecordsHandler(w http.ResponseWriter, r *http.Request
 	}
 	SuccessResponse(w, TopicRecordsResponse{
 		Records:   result,
-		CountPage: len(lines)/req.PageSize + 1,
+		CountPage: int(math.Ceil(float64(len(lines)) / float64(req.PageSize))),
 	})
 }
 
