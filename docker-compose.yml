@@ -1,8 +1,5 @@
 version: '3.8'
 
-networks:
-  loki:
-
 services:
   web:
     container_name: 'web'
@@ -26,29 +23,44 @@ services:
 
 
   loki:
-    image: grafana/loki:2.2.1
-    ports:
-      - "3100:3100"
-    volumes:
-      - /root/promtailloki/loki:/etc/loki
-      - ./loki-config.yaml:/etc/loki/loki-config.yaml
-    command: -config.file=/etc/loki/loki-config.yaml
-    networks:
-      - loki
+      image: grafana/loki:2.9.2
+      container_name: loki
+      ports:
+        - "3100:3100"
+      volumes:
+        - ./loki-config.yaml:/etc/loki/loki-config.yaml
+      command: -config.file=/etc/loki/loki-config.yaml
+      networks:
+        - monitoring
 
   promtail:
-    image: grafana/promtail:2.2.1
+    image: grafana/promtail:2.9.2
+    container_name: promtail
     volumes:
-      - /var/log:/var/log
-      - /root/promtailloki/promtail:/etc/promtail
-      - ./promtail-config.yaml:/etc/loki/promtail-config.yaml
+      - ./promtail-config.yaml:/etc/promtail/promtail-config.yaml
+      - /var/log:/var/log  # Монтируем логи из системы
     command: -config.file=/etc/promtail/promtail-config.yaml
     networks:
+      - monitoring
+    depends_on:
       - loki
 
   grafana:
-    image: grafana/grafana:latest
+    image: grafana/grafana:10.1.2
+    container_name: grafana
     ports:
       - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
     networks:
+      - monitoring
+    depends_on:
       - loki
+
+networks:
+  monitoring:
+
+volumes:
+  grafana-data:
