@@ -16,7 +16,7 @@ scrape_configs:
         labels:
           job: varlogs
           __path__: /var/log/*.log
-          
+
   - job_name: 'docker-containers'
     static_configs:
       - targets:
@@ -25,3 +25,7 @@ scrape_configs:
           job: docker
           container_name: backend
           __path__: /var/log/containers/*.log
+
+  - job_name: 'node'
+    static_configs:
+      - targets: ['0.0.0.0:9100']
