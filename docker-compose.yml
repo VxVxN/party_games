@@ -1,4 +1,8 @@
 version: '3.8'
+
+networks:
+  loki:
+
 services:
   web:
     container_name: 'web'
