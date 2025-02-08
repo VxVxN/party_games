@@ -19,3 +19,30 @@ services:
     build: .
     ports:
       - "8080:8080"
+
+
+  loki:
+    image: grafana/loki:2.2.1
+    ports:
+      - "3100:3100"
+    volumes:
+      - /root/promtailloki/loki:/etc/loki
+    command: -config.file=/etc/loki/loki-config.yaml
+    networks:
+      - loki
+
+  promtail:
+    image: grafana/promtail:2.2.1
+    volumes:
+      - /var/log:/var/log
+      - /root/promtailloki/promtail:/etc/promtail
+    command: -config.file=/etc/promtail/promtail-config.yaml
+    networks:
+      - loki
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3001"
+    networks:
+      - loki
