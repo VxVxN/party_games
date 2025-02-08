@@ -23,15 +23,15 @@ services:
 
 
   loki:
-      image: grafana/loki:2.9.2
-      container_name: loki
-      ports:
-        - "3100:3100"
-      volumes:
-        - ./loki-config.yaml:/etc/loki/loki-config.yaml
-      command: -config.file=/etc/loki/loki-config.yaml
-      networks:
-        - monitoring
+    image: grafana/loki:2.9.2
+    container_name: loki
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./loki-config.yaml:/etc/loki/loki-config.yaml
+    command: -config.file=/etc/loki/loki-config.yaml
+    networks:
+      - monitoring
 
   promtail:
     image: grafana/promtail:2.9.2
