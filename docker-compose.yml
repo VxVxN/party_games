@@ -1,8 +1,5 @@
 version: '3.8'
 
-networks:
-  loki:
-
 services:
   web:
     container_name: 'web'
@@ -13,7 +10,7 @@ services:
       - .:/app
 #    command: yarn start
     ports:
-      - "3000:80"
+      - "4000:80"
     environment:
       NODE_ENV: development
 
@@ -26,27 +23,67 @@ services:
 
 
   loki:
-    image: grafana/loki:2.2.1
+    image: grafana/loki:latest
+    container_name: loki
+    user: root
     ports:
       - "3100:3100"
     volumes:
-      - /root/promtailloki/loki:/etc/loki
+      - ./loki-data:/loki
+      - ./loki-config.yaml:/etc/loki/loki-config.yaml
     command: -config.file=/etc/loki/loki-config.yaml
     networks:
-      - loki
+      - monitoring
 
   promtail:
-    image: grafana/promtail:2.2.1
+    image: grafana/promtail:2.9.2
+    container_name: promtail
     volumes:
-      - /var/log:/var/log
-      - /root/promtailloki/promtail:/etc/promtail
+      - ./promtail-config.yaml:/etc/promtail/promtail-config.yaml
+      - /var/log:/var/log  # Монтируем логи из системы
     command: -config.file=/etc/promtail/promtail-config.yaml
     networks:
+      - monitoring
+    depends_on:
       - loki
 
   grafana:
-    image: grafana/grafana:latest
+    image: grafana/grafana:10.1.2
+    container_name: grafana
     ports:
-      - "3000:3001"
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
     networks:
+      - monitoring
+    depends_on:
       - loki
+
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: portainer
+    restart: always
+    ports:
+      - "9443:9443"  # HTTPS UI
+      - "9000:9000"  # (опционально) старый UI
+      - "8000:8000"  # Edge Agent
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --interval 300
+
+networks:
+  monitoring:
+
+volumes:
+  grafana-data:
+  portainer_data:
