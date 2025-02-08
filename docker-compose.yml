@@ -26,7 +26,7 @@ services:
 
 
   loki:
-    image: grafana/loki:latest
+    image: grafana/loki:2.2.1
     ports:
       - "3100:3100"
     volumes:
@@ -37,7 +37,7 @@ services:
       - loki
 
   promtail:
-    image: grafana/promtail:latest
+    image: grafana/promtail:2.2.1
     volumes:
       - /var/log:/var/log
       - /root/promtailloki/promtail:/etc/promtail
