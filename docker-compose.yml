@@ -66,8 +66,9 @@ services:
     container_name: portainer
     restart: always
     ports:
-      - "8000:8001"
-      - "9443:9443"
+      - "9443:9443"  # HTTPS UI
+      - "9000:9000"  # (опционально) старый UI
+      - "8000:8000"  # Edge Agent
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - portainer_data:/data
