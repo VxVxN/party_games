@@ -46,3 +46,18 @@ scrape_configs:
       - targets: ['localhost:9100']
         labels:
           job: node
+
+  - job_name: "docker-logs"
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: "docker-logs"
+          host: "backend"
+          __path__: "/var/lib/docker/containers/*/*.log"
+    pipeline_stages:
+      - json:
+          expressions:
+            log: log
+      - labels:
+          log: log
