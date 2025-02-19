@@ -94,7 +94,7 @@ func TestController_TopicRecordsHandler(t *testing.T) {
 				},
 				w: httptest.NewRecorder(),
 			},
-			expected: `{"error":"open topics/notFoundFile: no such file or directory"}`,
+			expected: `{"error":"open games/never_have_i_ever/topics/notFoundFile: no such file or directory"}`,
 		},
 		{
 			name: "Get empty file",
