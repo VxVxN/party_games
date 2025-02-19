@@ -1,4 +1,4 @@
-package server
+package neverhaveiever
 
 import (
 	"bytes"
@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestServer_TopicRecordsHandler(t *testing.T) {
+func TestController_TopicRecordsHandler(t *testing.T) {
 	type fields struct {
 		fileDataByName map[string][]byte
 	}
@@ -94,7 +94,7 @@ func TestServer_TopicRecordsHandler(t *testing.T) {
 				},
 				w: httptest.NewRecorder(),
 			},
-			expected: `{"error":"open topics/notFoundFile: no such file or directory"}`,
+			expected: `{"error":"open games/never_have_i_ever/topics/notFoundFile: no such file or directory"}`,
 		},
 		{
 			name: "Get empty file",
@@ -169,10 +169,10 @@ func TestServer_TopicRecordsHandler(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			server := &Server{
+			controller := &Controller{
 				fileDataByName: tt.fields.fileDataByName,
 			}
-			server.TopicRecordsHandler(tt.args.w, tt.args.r)
+			controller.TopicRecordsHandler(tt.args.w, tt.args.r)
 
 			res := tt.args.w.(*httptest.ResponseRecorder).Result()
 			data, err := io.ReadAll(res.Body)

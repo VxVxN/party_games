@@ -1,4 +1,4 @@
-package server
+package neverhaveiever
 
 import (
 	"encoding/json"
@@ -7,7 +7,10 @@ import (
 	"math"
 	"net/http"
 	"os"
+	"path"
 	"strings"
+
+	"github.com/VxVxN/party_games/pkg/httptools"
 )
 
 type TopicRecordsRequest struct {
@@ -21,11 +24,11 @@ type TopicRecordsResponse struct {
 	CountPage int      `json:"count_page"`
 }
 
-func (server *Server) TopicRecordsHandler(w http.ResponseWriter, r *http.Request) {
+func (controller *Controller) TopicRecordsHandler(w http.ResponseWriter, r *http.Request) {
 	var req TopicRecordsRequest
 
 	if err := UnmarshalRequest(r.Body, &req); err != nil {
-		ErrResponse(w, http.StatusBadRequest, fmt.Errorf("can't unmarshal request body: %v", err))
+		httptools.ErrResponse(w, http.StatusBadRequest, fmt.Errorf("can't unmarshal request body: %v", err))
 		return
 	}
 
@@ -34,27 +37,27 @@ func (server *Server) TopicRecordsHandler(w http.ResponseWriter, r *http.Request
 	}
 
 	if len(req.Topics) == 0 {
-		ErrResponse(w, http.StatusBadRequest, fmt.Errorf("topics is empty"))
+		httptools.ErrResponse(w, http.StatusBadRequest, fmt.Errorf("topics is empty"))
 		return
 	}
-	lines, err := server.getRecordsByTopics(req.Topics)
+	lines, err := controller.getRecordsByTopics(req.Topics)
 	if err != nil {
-		ErrResponse(w, http.StatusInternalServerError, err)
+		httptools.ErrResponse(w, http.StatusInternalServerError, err)
 		return
 	}
 	result := GetDataPage(lines, req.Page, req.PageSize)
 	if result == nil {
 		result = make([]string, 0)
 	}
-	SuccessResponse(w, TopicRecordsResponse{
+	httptools.SuccessResponse(w, TopicRecordsResponse{
 		Records:   result,
 		CountPage: int(math.Ceil(float64(len(lines)) / float64(req.PageSize))),
 	})
 }
 
-func (server *Server) getRecordsByTopics(topics []string) ([]string, error) {
+func (controller *Controller) getRecordsByTopics(topics []string) ([]string, error) {
 	if isAllTopic(topics) {
-		files, err := os.ReadDir("topics")
+		files, err := os.ReadDir(topicsPath)
 		if err != nil {
 			return nil, err
 		}
@@ -63,26 +66,26 @@ func (server *Server) getRecordsByTopics(topics []string) ([]string, error) {
 			topics = append(topics, file.Name())
 		}
 	}
-	lines, err := server.readRecordsByTopics(topics)
+	lines, err := controller.readRecordsByTopics(topics)
 	if err != nil {
 		return nil, err
 	}
 	return lines, nil
 }
 
-func (server *Server) readRecordsByTopics(topics []string) ([]string, error) {
+func (controller *Controller) readRecordsByTopics(topics []string) ([]string, error) {
 	var lines []string
 	for _, topic := range topics {
 		var data []byte
 		var ok bool
-		data, ok = server.fileDataByName[topic]
+		data, ok = controller.fileDataByName[topic]
 		if !ok {
 			var err error
-			data, err = os.ReadFile("topics/" + topic)
+			data, err = os.ReadFile(path.Join(topicsPath, topic))
 			if err != nil {
 				return nil, err
 			}
-			server.fileDataByName[topic] = data
+			controller.fileDataByName[topic] = data
 		}
 		if data == nil {
 			continue

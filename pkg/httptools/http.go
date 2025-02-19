@@ -1,34 +1,12 @@
-package server
+package httptools
 
 import (
 	"encoding/json"
 	"net/http"
-	"os"
 )
 
 type errorResponse struct {
 	Error string `json:"error"`
-}
-
-func (server *Server) TopicListHandler(w http.ResponseWriter, r *http.Request) {
-	result, err := getTopicList()
-	if err != nil {
-		ErrResponse(w, http.StatusInternalServerError, err)
-		return
-	}
-	SuccessResponse(w, result)
-}
-
-func getTopicList() ([]string, error) {
-	result := []string{"all"}
-	dirEntities, err := os.ReadDir("topics")
-	if err != nil {
-		return nil, err
-	}
-	for _, entity := range dirEntities {
-		result = append(result, entity.Name())
-	}
-	return result, nil
 }
 
 func ErrResponse(w http.ResponseWriter, status int, err error) {
