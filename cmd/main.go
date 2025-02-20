@@ -11,6 +11,7 @@ func main() {
 	server := server.NewServer()
 
 	router := http.NewServeMux()
+	router.Handle("GET /description", server.LogMiddleware(server.INeverController.DescriptionHandler))
 	router.Handle("GET /topic/list", server.LogMiddleware(server.INeverController.TopicListHandler))
 	router.Handle("POST /topic/records", server.LogMiddleware(server.INeverController.TopicRecordsHandler))
 
