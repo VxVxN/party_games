@@ -40,7 +40,7 @@ func TestController_TopicRecordsHandler(t *testing.T) {
 				},
 				w: httptest.NewRecorder(),
 			},
-			expected: `{"records":["data1.1","data1.2","data1.3"],"count_page":1}`,
+			expected: `{"result":{"records":["data1.1","data1.2","data1.3"],"count_page":1}}`,
 		},
 		{
 			name: "Get page out of range of file1",
@@ -58,7 +58,7 @@ func TestController_TopicRecordsHandler(t *testing.T) {
 				},
 				w: httptest.NewRecorder(),
 			},
-			expected: `{"records":[],"count_page":1}`,
+			expected: `{"result":{"records":[],"count_page":1}}`,
 		},
 		{
 			name: "Get second page of file1",
@@ -76,7 +76,7 @@ func TestController_TopicRecordsHandler(t *testing.T) {
 				},
 				w: httptest.NewRecorder(),
 			},
-			expected: `{"records":["data1.2"],"count_page":3}`,
+			expected: `{"result":{"records":["data1.2"],"count_page":3}}`,
 		},
 		{
 			name: "Not found file",
@@ -112,7 +112,7 @@ func TestController_TopicRecordsHandler(t *testing.T) {
 				},
 				w: httptest.NewRecorder(),
 			},
-			expected: `{"records":[""],"count_page":1}`,
+			expected: `{"result":{"records":[""],"count_page":1}}`,
 		},
 		{
 			name: "Empty topic",
@@ -146,7 +146,7 @@ func TestController_TopicRecordsHandler(t *testing.T) {
 				},
 				w: httptest.NewRecorder(),
 			},
-			expected: `{"records":["data1.1","data1.2","data1.3","data1.4","data1.5","data1.6","data1.7","data1.8","data1.9","data1.10"],"count_page":2}`,
+			expected: `{"result":{"records":["data1.1","data1.2","data1.3","data1.4","data1.5","data1.6","data1.7","data1.8","data1.9","data1.10"],"count_page":2}}`,
 		},
 		{
 			name: "Get some files",
@@ -164,7 +164,7 @@ func TestController_TopicRecordsHandler(t *testing.T) {
 				},
 				w: httptest.NewRecorder(),
 			},
-			expected: `{"records":["data1.1","data1.2","data1.3","data2"],"count_page":1}`,
+			expected: `{"result":{"records":["data1.1","data1.2","data1.3","data2"],"count_page":1}}`,
 		},
 	}
 	for _, tt := range tests {
