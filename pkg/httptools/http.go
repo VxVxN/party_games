@@ -2,6 +2,7 @@ package httptools
 
 import (
 	"encoding/json"
+	"io"
 	"net/http"
 )
 
@@ -42,4 +43,8 @@ func SuccessResponse(w http.ResponseWriter, resp interface{}) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(data)
+}
+
+func UnmarshalRequest(body io.ReadCloser, reqStruct interface{}) error {
+	return json.NewDecoder(body).Decode(&reqStruct)
 }

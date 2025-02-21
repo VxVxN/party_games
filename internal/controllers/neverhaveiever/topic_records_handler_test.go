@@ -2,6 +2,7 @@ package neverhaveiever
 
 import (
 	"bytes"
+	"encoding/json"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -19,10 +20,11 @@ func TestController_TopicRecordsHandler(t *testing.T) {
 		r *http.Request
 	}
 	tests := []struct {
-		name     string
-		fields   fields
-		args     args
-		expected string
+		name              string
+		fields            fields
+		args              args
+		expected          map[string]interface{}
+		expectedErrorText string
 	}{
 		{
 			name: "Get file1",
@@ -40,7 +42,10 @@ func TestController_TopicRecordsHandler(t *testing.T) {
 				},
 				w: httptest.NewRecorder(),
 			},
-			expected: `{"result":{"records":["data1.1","data1.2","data1.3"],"count_page":1}}`,
+			expected: map[string]interface{}{
+				"records":    []interface{}{"data1.1", "data1.2", "data1.3"},
+				"count_page": 1,
+			},
 		},
 		{
 			name: "Get page out of range of file1",
@@ -58,7 +63,10 @@ func TestController_TopicRecordsHandler(t *testing.T) {
 				},
 				w: httptest.NewRecorder(),
 			},
-			expected: `{"result":{"records":[],"count_page":1}}`,
+			expected: map[string]interface{}{
+				"records":    []interface{}{},
+				"count_page": 1,
+			},
 		},
 		{
 			name: "Get second page of file1",
@@ -76,7 +84,10 @@ func TestController_TopicRecordsHandler(t *testing.T) {
 				},
 				w: httptest.NewRecorder(),
 			},
-			expected: `{"result":{"records":["data1.2"],"count_page":3}}`,
+			expected: map[string]interface{}{
+				"records":    []interface{}{"data1.2"},
+				"count_page": 3,
+			},
 		},
 		{
 			name: "Not found file",
@@ -94,7 +105,7 @@ func TestController_TopicRecordsHandler(t *testing.T) {
 				},
 				w: httptest.NewRecorder(),
 			},
-			expected: `{"error":"open games/never_have_i_ever/topics/notFoundFile: no such file or directory"}`,
+			expectedErrorText: `{"error":"open games/never_have_i_ever/topics/notFoundFile: no such file or directory"}`,
 		},
 		{
 			name: "Get empty file",
@@ -112,7 +123,10 @@ func TestController_TopicRecordsHandler(t *testing.T) {
 				},
 				w: httptest.NewRecorder(),
 			},
-			expected: `{"result":{"records":[""],"count_page":1}}`,
+			expected: map[string]interface{}{
+				"records":    []interface{}{},
+				"count_page": 1,
+			},
 		},
 		{
 			name: "Empty topic",
@@ -130,7 +144,7 @@ func TestController_TopicRecordsHandler(t *testing.T) {
 				},
 				w: httptest.NewRecorder(),
 			},
-			expected: `{"error":"topics is empty"}`,
+			expectedErrorText: `{"error":"topics is empty"}`,
 		},
 		{
 			name: "Check default page_size in request",
@@ -146,7 +160,10 @@ func TestController_TopicRecordsHandler(t *testing.T) {
 				},
 				w: httptest.NewRecorder(),
 			},
-			expected: `{"result":{"records":["data1.1","data1.2","data1.3","data1.4","data1.5","data1.6","data1.7","data1.8","data1.9","data1.10"],"count_page":2}}`,
+			expected: map[string]interface{}{
+				"records":    []interface{}{"data1.1", "data1.2", "data1.3", "data1.4", "data1.5", "data1.6", "data1.7", "data1.8", "data1.9", "data1.10"},
+				"count_page": 2,
+			},
 		},
 		{
 			name: "Get some files",
@@ -164,7 +181,10 @@ func TestController_TopicRecordsHandler(t *testing.T) {
 				},
 				w: httptest.NewRecorder(),
 			},
-			expected: `{"result":{"records":["data1.1","data1.2","data1.3","data2"],"count_page":1}}`,
+			expected: map[string]interface{}{
+				"records":    []interface{}{"data1.1", "data1.2", "data1.3", "data2"},
+				"count_page": 1,
+			},
 		},
 	}
 	for _, tt := range tests {
@@ -178,7 +198,20 @@ func TestController_TopicRecordsHandler(t *testing.T) {
 			data, err := io.ReadAll(res.Body)
 			assert.NoError(t, err)
 
-			assert.Equal(t, tt.expected, string(data))
+			if tt.expectedErrorText != "" {
+				assert.Equal(t, tt.expectedErrorText, string(data))
+				return
+			}
+
+			var resp successResponse
+			err = json.Unmarshal(data, &resp)
+			assert.NoError(t, err)
+
+			assert.ObjectsAreEqual(tt.expected, resp.Result)
 		})
 	}
+}
+
+type successResponse struct {
+	Result interface{} `json:"result"`
 }

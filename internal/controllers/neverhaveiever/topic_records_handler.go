@@ -1,10 +1,9 @@
 package neverhaveiever
 
 import (
-	"encoding/json"
 	"fmt"
-	"io"
 	"math"
+	"math/rand/v2"
 	"net/http"
 	"os"
 	"path"
@@ -27,7 +26,7 @@ type TopicRecordsResponse struct {
 func (controller *Controller) TopicRecordsHandler(w http.ResponseWriter, r *http.Request) {
 	var req TopicRecordsRequest
 
-	if err := UnmarshalRequest(r.Body, &req); err != nil {
+	if err := httptools.UnmarshalRequest(r.Body, &req); err != nil {
 		httptools.ErrResponse(w, http.StatusBadRequest, fmt.Errorf("can't unmarshal request body: %v", err))
 		return
 	}
@@ -49,6 +48,7 @@ func (controller *Controller) TopicRecordsHandler(w http.ResponseWriter, r *http
 	if result == nil {
 		result = make([]string, 0)
 	}
+	rand.Shuffle(len(result), func(i, j int) { result[i], result[j] = result[j], result[i] })
 	httptools.SuccessResponse(w, TopicRecordsResponse{
 		Records:   result,
 		CountPage: int(math.Ceil(float64(len(lines)) / float64(req.PageSize))),
@@ -102,11 +102,6 @@ func isAllTopic(topics []string) bool {
 		}
 	}
 	return false
-}
-
-func UnmarshalRequest(body io.ReadCloser, reqStruct interface{}) error {
-	decoder := json.NewDecoder(body)
-	return decoder.Decode(&reqStruct)
 }
 
 func GetDataPage(data []string, page, pageSize int) []string {
