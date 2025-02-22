@@ -16,6 +16,7 @@ type TopicRecordsRequest struct {
 	Topics   []string `json:"topics"`
 	Page     int      `json:"page"`
 	PageSize int      `json:"page_size"`
+	Refresh  bool     `json:"refresh"`
 }
 
 type TopicRecordsResponse struct {
@@ -48,7 +49,9 @@ func (controller *Controller) TopicRecordsHandler(w http.ResponseWriter, r *http
 	if result == nil {
 		result = make([]string, 0)
 	}
-	rand.Shuffle(len(result), func(i, j int) { result[i], result[j] = result[j], result[i] })
+	if req.Refresh {
+		rand.Shuffle(len(result), func(i, j int) { result[i], result[j] = result[j], result[i] })
+	}
 	httptools.SuccessResponse(w, TopicRecordsResponse{
 		Records:   result,
 		CountPage: int(math.Ceil(float64(len(lines)) / float64(req.PageSize))),
