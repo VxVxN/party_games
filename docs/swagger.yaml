@@ -1,0 +1,115 @@
+definitions:
+  httptools.JsonErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  httptools.JsonSuccessResponse:
+    properties:
+      result: {}
+    type: object
+  neverhaveiever.TopicRecordsRequest:
+    properties:
+      page:
+        example: 1
+        type: integer
+      page_size:
+        type: integer
+      refresh:
+        type: boolean
+      topics:
+        example:
+        - all
+        items:
+          type: string
+        type: array
+    type: object
+  neverhaveiever.TopicRecordsResponse:
+    properties:
+      count_page:
+        type: integer
+      records:
+        items:
+          type: string
+        type: array
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  title: Party games API
+  version: "1.0"
+paths:
+  /neverhaveiever/description:
+    get:
+      description: get description
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: desc
+          schema:
+            allOf:
+            - $ref: '#/definitions/httptools.JsonSuccessResponse'
+            - properties:
+                result:
+                  type: string
+              type: object
+      summary: Description of game
+      tags:
+      - neverhaveiever
+  /neverhaveiever/topic/list:
+    get:
+      description: get topic list
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: desc
+          schema:
+            allOf:
+            - $ref: '#/definitions/httptools.JsonSuccessResponse'
+            - properties:
+                result:
+                  items:
+                    type: string
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httptools.JsonErrorResponse'
+      summary: Topic list
+      tags:
+      - neverhaveiever
+  /neverhaveiever/topic/records:
+    post:
+      consumes:
+      - application/json
+      description: get records by topic
+      parameters:
+      - description: query params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/neverhaveiever.TopicRecordsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: desc
+          schema:
+            allOf:
+            - $ref: '#/definitions/httptools.JsonSuccessResponse'
+            - properties:
+                result:
+                  $ref: '#/definitions/neverhaveiever.TopicRecordsResponse'
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httptools.JsonErrorResponse'
+      summary: Records
+      tags:
+      - neverhaveiever
+swagger: "2.0"

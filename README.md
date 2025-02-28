@@ -29,3 +29,18 @@
 
 Открой браузер:
 http://localhost:3000
+
+## Documentation
+
+Format swagger comments:
+
+```bash
+swag fmt
+```
+
+Generate documentation:
+```bash
+swag init -d ./cmd,./
+```
+
+You can read the API documentation at http://localhost:8080/swagger/index.html

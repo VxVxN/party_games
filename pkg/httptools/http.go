@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-type errorResponse struct {
+type JsonErrorResponse struct {
 	Error string `json:"error"`
 }
 
@@ -15,7 +15,7 @@ func ErrResponse(w http.ResponseWriter, status int, err error) {
 	//w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 	//w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.WriteHeader(status)
-	data, err := json.Marshal(errorResponse{Error: err.Error()})
+	data, err := json.Marshal(JsonErrorResponse{Error: err.Error()})
 	if err != nil {
 		// todo
 		return
@@ -24,7 +24,7 @@ func ErrResponse(w http.ResponseWriter, status int, err error) {
 	w.Write(data)
 }
 
-type successResponse struct {
+type JsonSuccessResponse struct {
 	Result interface{} `json:"result"`
 }
 
@@ -36,7 +36,7 @@ func SuccessResponse(w http.ResponseWriter, resp interface{}) {
 	if resp == nil {
 		return
 	}
-	data, err := json.Marshal(successResponse{Result: resp})
+	data, err := json.Marshal(JsonSuccessResponse{Result: resp})
 	if err != nil {
 		// todo
 		return

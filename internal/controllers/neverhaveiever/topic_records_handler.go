@@ -13,8 +13,8 @@ import (
 )
 
 type TopicRecordsRequest struct {
-	Topics   []string `json:"topics"`
-	Page     int      `json:"page"`
+	Topics   []string `json:"topics" example:"all"`
+	Page     int      `json:"page" example:"1"`
 	PageSize int      `json:"page_size"`
 	Refresh  bool     `json:"refresh"`
 }
@@ -24,6 +24,17 @@ type TopicRecordsResponse struct {
 	CountPage int      `json:"count_page"`
 }
 
+// TopicRecordsHandler Return records by topic
+//
+//		@Summary		Records
+//		@Description	get records by topic
+//		@Tags			neverhaveiever
+//	    @Accept         json
+//		@Produce		json
+//		@Param			request		body		TopicRecordsRequest true		"query params"
+//		@Failure		500			{object}	httptools.JsonErrorResponse
+//		@Success		200			{object}	httptools.JsonSuccessResponse{result=TopicRecordsResponse}	"desc"
+//		@Router			/neverhaveiever/topic/records [post]
 func (controller *Controller) TopicRecordsHandler(w http.ResponseWriter, r *http.Request) {
 	var req TopicRecordsRequest
 
